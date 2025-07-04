@@ -62,14 +62,28 @@ public class Skibidi {
         hadError = true;
     }
 
+    static void report(Token token,  String message){
+        if (token.type == TokenType.EOF) {
+            report(token.line, token.column, " At end: " + message);
+        } 
+        else {
+            report(token.line, token.column, " at '" + token.lexeme + "'" + "\n" + message);
+        }
+    }
+
     private static void run(String code){
         Lexer lexer = new Lexer(code);
         List <Token> tokens = lexer.scanTokens();
 
-        for (Token token : tokens){
-            if (token.type != TokenType.EOF) System.out.println(token);
+        Parser parser = new Parser(tokens);
+        try {
+            Skib expresion = parser.parse();
+            if (hadError) return;
+            System.out.println(new AstPrinter().print(expresion));
         }
-
+        catch (NullPointerException e){
+            return;
+        }
     }
 
     private static void runFile(String path) throws IOException{

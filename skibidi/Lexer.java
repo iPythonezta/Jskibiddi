@@ -1,11 +1,10 @@
 package skibidi;
 
-import static skibidi.TokenType.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static skibidi.TokenType.*;
 
 public class Lexer {
     private final String source;
@@ -179,6 +178,8 @@ public class Lexer {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break; 
+            case '?': addToken(QUESTION_MARK); break;
+            case ':': addToken(COLON); break;
             case '/': 
                 if (match('/')){
                     while (peek() != '\n' && !isAtEnd()){

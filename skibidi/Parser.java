@@ -2,7 +2,9 @@ package skibidi;
 import java.util.List;
 /*
  Lang Grammar:
-    skib     → equality ;
+    skib     → conditional ;
+    conditional -> comma ( "?" conditional ":" conditional )? ;
+    comma   → equality ( "," equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -30,10 +32,32 @@ public class Parser {
             return null;
         }
     }
-
+    
     private Skib expression(){
-        return equality();
+        return conditional();
     }
+
+    private Skib conditional (){
+        Skib skib = comma();
+        if (match(TokenType.QUESTION_MARK)) {
+            Skib thenBranch = conditional();
+            consume(TokenType.COLON, "Expect ':' after '?' in conditional expression.");
+            Skib elseBranch = conditional();
+            return new Skib.ConditionalSkib(skib, thenBranch, elseBranch);
+        }
+        return skib;
+    }
+
+    private Skib comma(){
+        Skib skib = equality();
+        while (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Skib right = equality();
+            skib = new Skib.DuoSkib(skib, operator, right);
+        }
+        return skib;
+    }
+
 
     private Skib equality(){
         Skib skib = comparison();
@@ -150,6 +174,7 @@ public class Parser {
         if (current != 0) Skibidi.report(token, message);
         return new ParseError();
     }
+    
     private void synchronize() {
         advance();
 

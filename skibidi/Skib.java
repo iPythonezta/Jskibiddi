@@ -16,18 +16,36 @@ package skibidi;
 */
 
 
-abstract class Skib {
+public abstract class Skib {
 
     public interface Visitor<R> {
         R visitDuoSkib(DuoSkib duoskib);
         R visitMonoSkib(MonoSkib monoskib);
         R visitNestSkib(NestSkib nestskib);
         R visitLiteralSkib(literalSkib literalSkib);
+        R visitConditionalSkib(ConditionalSkib conditionalSkib);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
 
-    static class DuoSkib extends Skib {
+    public static class ConditionalSkib extends Skib {
+        final Skib condition;
+        final Skib thenBranch;
+        final Skib elseBranch;
+
+        public ConditionalSkib(Skib condition, Skib thenBranch, Skib elseBranch) {
+            this.condition = condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitConditionalSkib(this);
+        }
+    }
+
+    public static class DuoSkib extends Skib {
         final Token operator;
         final Skib leftSkib;
         final Skib rightSkib;
@@ -42,7 +60,7 @@ abstract class Skib {
         }
     }
 
-    static class MonoSkib extends Skib {
+    public static class MonoSkib extends Skib {
         final Token operator;
         final Skib skib;
         public MonoSkib(Token operator, Skib skib) {
@@ -55,7 +73,7 @@ abstract class Skib {
         }
     }
 
-    static class NestSkib extends Skib {
+    public static class NestSkib extends Skib {
         final Skib skib;
         public NestSkib(Skib skib) {
             this.skib = skib;
@@ -66,7 +84,7 @@ abstract class Skib {
         }
     }
 
-    static class literalSkib extends Skib {
+    public static class literalSkib extends Skib {
         final Object value;
         public literalSkib(Object value) {
             this.value = value;

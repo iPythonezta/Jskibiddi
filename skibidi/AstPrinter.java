@@ -5,7 +5,18 @@ public class AstPrinter implements Skib.Visitor {
     String print(Skib skib) {
         return (String) skib.accept(this);
     }
-    
+
+    @Override
+    public String visitConditionalSkib(Skib.ConditionalSkib conditionalSkib) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("if (").append(conditionalSkib.condition.accept(this)).append(") ");
+        builder.append(conditionalSkib.thenBranch.accept(this));
+        if (conditionalSkib.elseBranch != null) {
+            builder.append(" else ").append(conditionalSkib.elseBranch.accept(this));
+        }
+        return builder.toString();
+    }
+
     @Override
     public String visitDuoSkib(Skib.DuoSkib duoskib) {
         return parenthesize(duoskib.operator.lexeme, duoskib.leftSkib, duoskib.rightSkib);

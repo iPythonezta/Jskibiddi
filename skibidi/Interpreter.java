@@ -11,17 +11,27 @@ import skibidi.Skib.literalSkib;
 public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
 
     private Environment environment = new Environment();
+    private boolean replMode = false;
+    
+    public void setReplMode(boolean replMode) {
+        this.replMode = replMode;
+    } 
 
     public void interpret(List<Stmt> statements) {
         for (Stmt statement : statements) {
             try {
-                execute(statement);
+                if (replMode && (statement instanceof Stmt.SkibStmt)) {
+                    Object result = evaluate(((Stmt.SkibStmt) statement).skib);
+                    System.out.println(stringify(result));
+                }
+                else {
+                    execute(statement);
+                }
             } catch (RuntimeError error) {
                 Skibidi.runtimeError(error);
             }
         }
     }
-
 
     @Override
     public Object visitDuoSkib(DuoSkib duoskib) {
@@ -42,10 +52,13 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
                     return (double) left + (double) right;
                 }
                 if (left instanceof String && right instanceof Double) {
-                    return (String) left + right.toString();
+                    return (String) left + stringify(right);
                 }
                 if (left instanceof Double && right instanceof String) {
-                    return left.toString() + (String) right;
+                    return stringify(left) + (String) right;
+                }
+                if (left == null || right == null) {
+                    throw new RuntimeError(duoskib.operator, "Cannot concatenate 'none' values.");
                 }
                 throw new RuntimeError(duoskib.operator, String.format("The operator '+' cannot be applied to operands of types '%s' and '%s'.", 
                         left.getClass().getSimpleName(), right.getClass().getSimpleName()));
@@ -169,6 +182,25 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(assignBludSkib.value);
         environment.assign(assignBludSkib.name, value);
         return value;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.BlockStmt blockStmt) {
+        Environment previous = environment;
+        try {
+            environment = new Environment(environment);
+            for (Stmt statement : blockStmt.statements) {
+            if (replMode && (statement instanceof Stmt.SkibStmt)) {
+                Object result = evaluate(((Stmt.SkibStmt) statement).skib);
+                System.out.println(stringify(result));
+            } else {
+                execute(statement);
+            }
+        }
+        } finally {
+            environment = previous;
+        }
+        return null;
     }
 
     private Object evaluate(Skib skib) {

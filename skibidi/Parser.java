@@ -6,7 +6,8 @@ import java.util.ArrayList;
     program      → bludStmt* EOF ;
     bludStmt    → statement | bludDeclr ;
     bludDeclr   → "blud" IDENTIFIER ( "=" expression )? ";" ;
-    statement  -> skibStatmnt | printStatmnt;
+    statement  -> skibStatmnt | printStatmnt | block;
+    block      → "{" s(kibStatmnt | yapStatmnt)* "}" ;
     skibStatmnt  → skib ";" ;
     printStatmnt → "yap" skib ";" ;
     skib     → assignment | conditional ;
@@ -63,7 +64,19 @@ public class Parser {
         if (match(TokenType.YAP)) {
             return yappingStmt();
         }
+        if (match(TokenType.LEFT_BRACE)) {
+            return new Stmt.BlockStmt(block());
+        }
         return skibStatement();
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(bludStmt());
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     private Stmt yappingStmt() {

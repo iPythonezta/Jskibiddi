@@ -93,7 +93,7 @@ public class Skibidi {
             interpreter.interpret(statements);
         }
         catch (NullPointerException e){
-            
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -107,7 +107,8 @@ public class Skibidi {
     private static void runPrompt() throws IOException{
         InputStreamReader inp = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(inp);
-        
+
+        interpreter.setReplMode(true);
 
         for (;;){
             System.out.print(">> ");

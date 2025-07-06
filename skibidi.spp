@@ -1,5 +1,5 @@
-yap 2+3;
-yap 2 > 3 ? "true" : "false";
-yap "Skibi ++";
-blud hz = 5 + 5;
-yap hz;
+blud a = "Huzaifa ";
+{
+    blud a = a + "is the king";
+    yap a;
+}

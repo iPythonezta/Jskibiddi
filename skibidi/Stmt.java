@@ -1,5 +1,5 @@
 package skibidi;
-
+import java.util.List;
 
 public abstract class Stmt {
 
@@ -9,6 +9,7 @@ public abstract class Stmt {
         R visitSkibStmt(SkibStmt skibStmt);
         R visitYap(YapStmt yap);
         R visitBludStmt(BludDeclr bludDeclr);
+        R visitBlockStmt(BlockStmt blockStmt);
     }
 
     public static class SkibStmt extends Stmt {
@@ -45,6 +46,18 @@ public abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitBludStmt(this); 
+        }
+    }
+
+    public static class BlockStmt extends Stmt {
+        final List<Stmt> statements;
+
+        public BlockStmt(List<Stmt> statements) {
+            this.statements = statements;
+        }
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBlockStmt(this);
         }
     }
 }

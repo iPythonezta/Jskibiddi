@@ -25,7 +25,7 @@ enum TokenType {
 
     // Keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+    YAP, RETURN, SUPER, THIS, TRUE, BLUD, WHILE,
     EOF
 }
 
@@ -54,12 +54,22 @@ class Token {
 public class Skibidi {
 
     private static boolean hadError = false;
+    private static boolean hadRuntimeError = false;
+    private static final Interpreter interpreter = new Interpreter();
     
     static void report(int line, int column,  String message){
         System.out.printf(
             "Syntax Error in Line %d - Column %d%n%s%n", line, column, message
         );
         hadError = true;
+    }
+
+    static void runtimeError(RuntimeError error) {
+        System.err.printf(
+            "[Runtime Error] at line %d - column %d: %s%n",
+            error.token.line, error.token.column, error.getMessage()
+        );
+        hadRuntimeError = true;
     }
 
     static void report(Token token,  String message){
@@ -77,9 +87,10 @@ public class Skibidi {
 
         Parser parser = new Parser(tokens);
         try {
-            Skib expresion = parser.parse();
+            List<Stmt> statements = parser.parse();
             if (hadError) return;
-            System.out.println(new AstPrinter().print(expresion));
+            // System.out.println(new AstPrinter().print(expresion));
+            interpreter.interpret(statements);
         }
         catch (NullPointerException e){
             
@@ -90,6 +101,7 @@ public class Skibidi {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) System.exit(65);
+        if (hadRuntimeError) System.exit(70);
     }
 
     private static void runPrompt() throws IOException{
@@ -108,7 +120,7 @@ public class Skibidi {
 
     public static void main(String[] args) throws IOException {
         if (args.length  > 1){
-            System.out.println("Usage: spp [script]");
+            System.out.println("Usage: skibidi [script]");
             System.exit(64);
         } else if (args.length == 1){
             runFile(args[0]);

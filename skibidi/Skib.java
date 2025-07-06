@@ -1,20 +1,5 @@
 package skibidi;
 
-/*
- Base Lang Grammar:
-    skib     → literalskib
-                | monoskib
-                | duoskib
-                | nestskib ;
-
-    literalskib        → NUMBER | STRING | "true" | "false" | "nil" ;
-    nestskib       → "(" skib ")" ;
-    monoskib          → ( "-" | "!" ) skib ;
-    duoskib         → skib operator skib ;
-    operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
-                | "+"  | "-"  | "*" | "/" ;
-*/
-
 
 public abstract class Skib {
 
@@ -24,6 +9,8 @@ public abstract class Skib {
         R visitNestSkib(NestSkib nestskib);
         R visitLiteralSkib(literalSkib literalSkib);
         R visitConditionalSkib(ConditionalSkib conditionalSkib);
+        R visitBludSkib(bludSkib bludSkib);
+        R vistiAssignBludSkib(AssignBludSkib assignBludSkib);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -92,6 +79,34 @@ public abstract class Skib {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitLiteralSkib(this);
+        }
+    }
+
+    public static class bludSkib extends Skib {
+        final Token name;
+
+        public bludSkib(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBludSkib(this);
+        }
+    }
+
+    public static class AssignBludSkib extends Skib {
+        final Token name;
+        final Skib value;
+
+        public AssignBludSkib(Token name, Skib value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.vistiAssignBludSkib(this); // Assuming you want to treat it as a bludSkib
         }
     }
 }

@@ -1,10 +1,17 @@
 package skibidi;
 import java.util.List;
+import java.util.ArrayList;
 /*
  Lang Grammar:
-    skib     → conditional ;
-    conditional -> comma ( "?" conditional ":" conditional )? ;
-    comma   → equality ( "," equality )* ;
+    program      → bludStmt* EOF ;
+    bludStmt    → statement | bludDeclr ;
+    bludDeclr   → "blud" IDENTIFIER ( "=" expression )? ";" ;
+    statement  -> skibStatmnt | printStatmnt;
+    skibStatmnt  → skib ";" ;
+    printStatmnt → "yap" skib ";" ;
+    skib     → assignment | conditional ;
+    assignment     → IDENTIFIER "=" assignment | conditional ;
+    conditional -> equality ( "?" conditional ":" conditional )? ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -12,7 +19,7 @@ import java.util.List;
     unary          → ( "!" | "-" ) unary
                 | primary ;
     primary        → NUMBER | STRING | "true" | "false" | "nil"
-                | "(" expression ")" ;
+                | "(" expression ")" | IDENTIFIER ;
 */
 
 public class Parser {
@@ -24,36 +31,78 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    public Skib parse(){
-        try {
-            return expression();
+    public List<Stmt> parse(){
+        List <Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(bludStmt());
         }
-        catch (ParseError error){
+        return statements;
+    }
+
+    private Stmt bludStmt(){
+        try {
+            if (match(TokenType.BLUD)) return bludDeclr();
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
             return null;
         }
     }
+
+    private Stmt bludDeclr(){
+        Token name = consume(TokenType.IDENTIFIER, "Expected identifier after 'blud'.");
+        Skib initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expected ';' after blud declaration.");
+        return new Stmt.BludDeclr(name, initializer);
+    }
+
+    private Stmt statement() {
+        if (match(TokenType.YAP)) {
+            return yappingStmt();
+        }
+        return skibStatement();
+    }
+
+    private Stmt yappingStmt() {
+        Skib skib = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.YapStmt(skib);
+    }
+
+    private Stmt skibStatement() {
+        Skib skib = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.SkibStmt(skib);
+    }
     
     private Skib expression(){
-        return conditional();
+        return assignment();
+    }
+
+    private Skib assignment() {
+        Skib skib = conditional();
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Skib value = assignment();
+            if (skib instanceof Skib.bludSkib) {
+                Token name = ((Skib.bludSkib) skib).name;
+                return new Skib.AssignBludSkib(name, value);
+            }
+            throw error(equals, "Invalid assignment target.");
+        }
+        return skib;
     }
 
     private Skib conditional (){
-        Skib skib = comma();
+        Skib skib = equality();
         if (match(TokenType.QUESTION_MARK)) {
             Skib thenBranch = conditional();
             consume(TokenType.COLON, "Expect ':' after '?' in conditional expression.");
             Skib elseBranch = conditional();
             return new Skib.ConditionalSkib(skib, thenBranch, elseBranch);
-        }
-        return skib;
-    }
-
-    private Skib comma(){
-        Skib skib = equality();
-        while (match(TokenType.COMMA)) {
-            Token operator = previous();
-            Skib right = equality();
-            skib = new Skib.DuoSkib(skib, operator, right);
         }
         return skib;
     }
@@ -120,7 +169,7 @@ public class Parser {
             return new Skib.literalSkib(null);
         }
         else if (match(TokenType.IDENTIFIER)) {
-            return new Skib.literalSkib(previous().lexeme);
+            return new Skib.bludSkib(previous());
         }
         else if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Skib.literalSkib(previous().literal);
@@ -184,11 +233,11 @@ public class Parser {
         switch (peek().type) {
             case CLASS:
             case FUN:
-            case VAR:
+            case BLUD:
             case FOR:
             case IF:
             case WHILE:
-            case PRINT:
+            case YAP:
             case RETURN:
             return;
         }

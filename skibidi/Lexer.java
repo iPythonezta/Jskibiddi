@@ -10,6 +10,7 @@ public class Lexer {
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
     private static final Map<String, TokenType> keywords;
+	private static TokenType put;
 
     static {
         keywords = new HashMap<>();
@@ -22,12 +23,12 @@ public class Lexer {
         keywords.put("if", IF);
         keywords.put("none", NIL);
         keywords.put("or", OR);
-        keywords.put("print", PRINT);
+        keywords.put("yap", YAP);
         keywords.put("return", RETURN);
         keywords.put("super", SUPER);
         keywords.put("this", THIS);
         keywords.put("true", TRUE);
-        keywords.put("var", VAR);
+        keywords.put("blud", BLUD);
         keywords.put("while", WHILE);
     }
 

@@ -1,5 +1,0 @@
-blud a = "Huzaifa ";
-{
-    blud a = a + "is the king";
-    yap a;
-}

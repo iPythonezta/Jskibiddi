@@ -24,9 +24,9 @@ enum TokenType {
     IDENTIFIER, STRING, NUMBER,
 
     // Keywords.
-    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    YAP, RETURN, SUPER, THIS, TRUE, BLUD, WHILE,
-    EOF
+    AND, CLASS, VIBECHECKFAIL, L, FUN, RIZZWALK, VIBECHECK, NIL, OR,
+    YAP, RETURN, SUPER, THIS, W, BLUD, COOK, RAGEQUIT, GHOSTNEXT,
+    EOF, PRAY, ONL, GOTCHU
 }
 
 class Token {
@@ -56,6 +56,17 @@ public class Skibidi {
     private static boolean hadError = false;
     private static boolean hadRuntimeError = false;
     private static final Interpreter interpreter = new Interpreter();
+
+    static String getErrorMessage(int line, int column, String message) {
+        return String.format("Syntax Error in Line %d - Column %d: %s", line, column, message);
+    }
+
+    static String getRunTimeErrorMessage(RuntimeError error) {
+        return String.format(
+            "[Runtime Error] at line %d - column %d: %s",
+            error.token.line, error.token.column, error.getMessage()
+        );
+    }
     
     static void report(int line, int column,  String message){
         System.out.printf(
@@ -128,6 +139,5 @@ public class Skibidi {
         } else {
             runPrompt();
         }
-
     }
 }

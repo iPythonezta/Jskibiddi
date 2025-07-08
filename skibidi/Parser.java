@@ -1,18 +1,26 @@
 package skibidi;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 /*
  Lang Grammar:
     program      → bludStmt* EOF ;
     bludStmt    → statement | bludDeclr ;
     bludDeclr   → "blud" IDENTIFIER ( "=" expression )? ";" ;
-    statement  -> skibStatmnt | printStatmnt | block;
-    block      → "{" s(kibStatmnt | yapStatmnt)* "}" ;
+    statement  →  skibStatmnt | yapStatmnt | ragequitStatmnt | block | vibeCheckStmt | CookStmt | RizzWalkStmt | GhostNextStmt | LHandlerStmt ;
+    LHandlerStmt → "pray"  statement  "onL" "(" IDENTIFIER ")" statement ("gotchu" statement)? ;
+    CookStmt   → "cook" "(" skib ")" statement ;
+    RizzWalkStmt → "RizzWalk" "(" (bludDeclr | skibStatmnt | ";") skib ? ";" skib? ")" statement ;
+    vibeCheckStmt → "vibecheck" "(" skib ")" statement ("vibecheckfail" satatement)? ";" ;
+    block      → "{" (statement)* "}" ;
+    ragequitStatmnt → "ragequit" ";" ;
+    GhostNextStmt → "ghostnext" ";" ;
     skibStatmnt  → skib ";" ;
     printStatmnt → "yap" skib ";" ;
-    skib     → assignment | conditional ;
+    skib     → assignment ;
     assignment     → IDENTIFIER "=" assignment | conditional ;
-    conditional -> equality ( "?" conditional ":" conditional )? ;
+    conditional -> logic_or ( "?" conditional ":" conditional )? ;
+    logic_or      → logic_and ( "or" logic_and )* ;
+    logic_and     → equality ( "and" equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
@@ -27,6 +35,7 @@ public class Parser {
     private static class ParseError extends RuntimeException {}
     private final List<Token> tokens;
     private int current = 0;
+    private int loopDepth = 0;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -65,9 +74,105 @@ public class Parser {
             return yappingStmt();
         }
         if (match(TokenType.LEFT_BRACE)) {
-            return new Stmt.BlockStmt(block());
+            return blockStmt();
+        }
+        if (match(TokenType.VIBECHECK)) {
+            return vibeCheckStmt();
+        }
+        if (match(TokenType.COOK)) {
+            return cookStmt();
+        }
+        if (match(TokenType.RIZZWALK)) {
+            return rizzWalkStmt();
+        }
+        if (match(TokenType.RAGEQUIT)) {
+            return rageQuitStmt();
+        }
+        if (match(TokenType.GHOSTNEXT)) {
+            return ghostNextStmt();
+        }
+        if (match(TokenType.PRAY)){
+            return lHandlerStmt();
         }
         return skibStatement();
+    }
+
+    private Stmt lHandlerStmt (){
+        Stmt body = statement();
+        consume(TokenType.ONL, "You must handle any Ls with 'onL'.");
+        consume(TokenType .LEFT_PAREN, "Expect '(' after 'onL'.");
+        Token identifier = consume(TokenType.IDENTIFIER, "Expect identifier after 'onL'.");
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after identifier in 'onL'.");
+        Stmt onlBody = statement();
+        Stmt gotchuBody = null;
+        if (match(TokenType.GOTCHU)) {
+            gotchuBody = statement();
+        }
+        return new Stmt.LHandlerStmt(body, onlBody, gotchuBody, new Stmt.BludDeclr(identifier, null));
+        
+    }
+
+    private Stmt ghostNextStmt() {
+       if (loopDepth == 0) {
+            throw error(peek(), "You can only use 'ghostnext' inside a rizzwalk or cook statement.");
+       }
+       consume(TokenType.SEMICOLON, "Expect ';' after 'ghostnext'.");
+       return new Stmt.GhostNextStmt();
+    }
+
+    private Stmt rageQuitStmt() {
+        if (loopDepth == 0) {
+            throw error(peek(), "You can only use 'ragequit' inside a rizzwalk or cook statement.");
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after 'ragequit'.");
+        return new Stmt.RageQuitStmt();
+    }
+
+    private Stmt rizzWalkStmt() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'rizzwalk'.");
+        Stmt initializer = null;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        }
+        else if (match(TokenType.BLUD)) {
+            initializer = bludDeclr();
+        }
+        else {  
+            initializer = skibStatement();
+        }
+        Skib condition = null;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after rizzwalk condition.");
+        Skib increment = null;
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after rizzwalk condition.");
+        loopDepth++;
+        Stmt body = statement();
+        if (condition == null) {
+            condition = new Skib.literalSkib(true);
+        }
+
+        
+        loopDepth--;
+        return new Stmt.RizzWalkStmt(initializer, condition, increment, body);
+    }
+
+    private Stmt cookStmt() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'cook'.");
+        Skib condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        loopDepth++;
+        Stmt body = statement();
+        loopDepth--;
+        return new Stmt.CookStmt(condition, body);
+    }
+
+    private Stmt blockStmt() {
+        return new Stmt.BlockStmt(block());
     }
 
     private List<Stmt> block() {
@@ -90,6 +195,19 @@ public class Parser {
         consume(TokenType.SEMICOLON, "Expect ';' after expression.");
         return new Stmt.SkibStmt(skib);
     }
+
+    private Stmt vibeCheckStmt() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'vibecheck'.");
+        Skib skib = logicOr();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after vibecheck expression.");
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(TokenType.VIBECHECKFAIL)) {
+            elseBranch = statement();
+        }
+        // consume(TokenType.SEMICOLON, "Expect ';' after vibecheck statement.");
+        return new Stmt.VibeCheckStmt(skib, thenBranch, elseBranch);
+    }
     
     private Skib expression(){
         return assignment();
@@ -110,7 +228,7 @@ public class Parser {
     }
 
     private Skib conditional (){
-        Skib skib = equality();
+        Skib skib = logicOr();
         if (match(TokenType.QUESTION_MARK)) {
             Skib thenBranch = conditional();
             consume(TokenType.COLON, "Expect ':' after '?' in conditional expression.");
@@ -120,6 +238,25 @@ public class Parser {
         return skib;
     }
 
+    private Skib logicOr() {
+        Skib skib = logicAnd();
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Skib right = logicAnd();
+            skib = new Skib.LogicalSkib(skib, operator, right);
+        }
+        return skib;
+    }
+
+    private Skib logicAnd() {
+        Skib skib = equality();
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Skib right = equality();
+            skib = new Skib.LogicalSkib(skib, operator, right);
+        }
+        return skib;
+    }
 
     private Skib equality(){
         Skib skib = comparison();
@@ -172,10 +309,10 @@ public class Parser {
 
     private Skib primary(){
 
-        if (match(TokenType.FALSE)) {
+        if (match(TokenType.L)) {
             return new Skib.literalSkib(false);
         }
-        else if (match(TokenType.TRUE)) {
+        else if (match(TokenType.W)) {
             return new Skib.literalSkib(true);
         }
         else if (match(TokenType.NIL)) {
@@ -247,9 +384,9 @@ public class Parser {
             case CLASS:
             case FUN:
             case BLUD:
-            case FOR:
-            case IF:
-            case WHILE:
+            case RIZZWALK:
+            case VIBECHECK:
+            case COOK:
             case YAP:
             case RETURN:
             return;

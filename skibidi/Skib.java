@@ -11,6 +11,7 @@ public abstract class Skib {
         R visitConditionalSkib(ConditionalSkib conditionalSkib);
         R visitBludSkib(bludSkib bludSkib);
         R vistiAssignBludSkib(AssignBludSkib assignBludSkib);
+        R visitLogicalSkib(LogicalSkib logicalSkib);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -107,6 +108,23 @@ public abstract class Skib {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.vistiAssignBludSkib(this); // Assuming you want to treat it as a bludSkib
+        }
+    }
+
+    public static class LogicalSkib extends Skib {
+        final Skib left;
+        final Token operator;
+        final Skib right;
+
+        public LogicalSkib(Skib left, Token operator, Skib right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalSkib(this);
         }
     }
 }

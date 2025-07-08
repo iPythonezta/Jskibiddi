@@ -9,3 +9,7 @@ class RuntimeError extends RuntimeException {
         this.token = token;
     }
 }
+
+class RageQuitException extends RuntimeException {}
+
+class GhostNextException extends RuntimeException {}

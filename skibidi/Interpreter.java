@@ -1,7 +1,6 @@
 package skibidi;
 
 import java.util.List;
-
 import skibidi.Skib.ConditionalSkib;
 import skibidi.Skib.DuoSkib;
 import skibidi.Skib.MonoSkib;
@@ -190,13 +189,101 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
         try {
             environment = new Environment(environment);
             for (Stmt statement : blockStmt.statements) {
-            if (replMode && (statement instanceof Stmt.SkibStmt)) {
-                Object result = evaluate(((Stmt.SkibStmt) statement).skib);
-                System.out.println(stringify(result));
-            } else {
-                execute(statement);
+                execute(statement);  
+            }
+        } finally {
+            environment = previous;
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitVibeCheckStmt(Stmt.VibeCheckStmt vibeCheckStmt) {
+        Object condition = evaluate(vibeCheckStmt.condition);
+        if (isTruthy(condition)) {
+            execute(vibeCheckStmt.thenBranch);
+        } else if (vibeCheckStmt.elseBranch != null) {
+            execute(vibeCheckStmt.elseBranch);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitLogicalSkib(Skib.LogicalSkib logicalSkib) {
+        Object left = evaluate(logicalSkib.left);
+        if (logicalSkib.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else if (logicalSkib.operator.type == TokenType.AND) {
+            if (!isTruthy(left)) return left;
+        }
+        return evaluate(logicalSkib.right);
+    }
+
+    @Override
+    public Void visitCookStmt(Stmt.CookStmt whileStmt) {
+        while (isTruthy(evaluate(whileStmt.condition))) {
+            try {
+                execute(whileStmt.body);
+            }
+            catch (RageQuitException e) {
+                break;
+            }
+            catch (GhostNextException e) {
+                continue;
             }
         }
+        return null;
+    }
+
+    @Override
+    public Void visitRizzWalkStmt(Stmt.RizzWalkStmt rizzWalkStmt){
+        execute(rizzWalkStmt.bludDeclr);
+        while (isTruthy(evaluate(rizzWalkStmt.skib))){
+            try {
+                execute(rizzWalkStmt.body);
+            } catch (RageQuitException e) {
+                break;
+            } catch (GhostNextException e) {
+                continue;
+            }
+            finally {
+                if (rizzWalkStmt.increment != null) {
+                    evaluate(rizzWalkStmt.increment);
+                }
+            }
+        }
+        return null;    
+    }
+
+    @Override
+    public Void visitRageQuitStmt(Stmt.RageQuitStmt rageQuitStmt) {
+        throw new RageQuitException();
+    }
+
+    @Override
+    public Void visitGhostNextStmt(Stmt.GhostNextStmt ghostNextStmt) {
+        throw new GhostNextException();
+    }
+
+    @Override
+    public Void visitLHandlerStmt(Stmt.LHandlerStmt lHandlerStmt) {
+        Environment previous = environment;
+        try {
+            environment = new Environment(environment);
+            try {
+                execute(lHandlerStmt.body);
+            } 
+            catch (RuntimeError e) {
+                execute(lHandlerStmt.LIdentifier);
+                String errorMsg = Skibidi.getRunTimeErrorMessage(e);
+                Skib assignment = new Skib.AssignBludSkib(lHandlerStmt.LIdentifier.name, new Skib.literalSkib(errorMsg));
+                evaluate(assignment);
+                execute(lHandlerStmt.LHandler);
+            }
+            if (lHandlerStmt.GotchuCode != null) {
+                execute(lHandlerStmt.GotchuCode);
+            }
+           
         } finally {
             environment = previous;
         }
@@ -231,6 +318,7 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
 
     public String stringify(Object object) {
         if (object == null) return "none";
+        if (object instanceof Boolean) return (boolean) object ? "W" : "L";
         if (object instanceof Double) {
             String text = object.toString();
             if (text.endsWith(".0")) {

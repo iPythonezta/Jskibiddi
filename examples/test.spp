@@ -1,0 +1,6 @@
+pray {
+    yap 2/0;
+}
+onL (e) {
+    yap e;
+}

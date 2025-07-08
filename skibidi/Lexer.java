@@ -16,20 +16,25 @@ public class Lexer {
         keywords = new HashMap<>();
         keywords.put("and", AND);
         keywords.put("class", CLASS);
-        keywords.put("else", ELSE);
-        keywords.put("false", FALSE);
+        keywords.put("vibecheckfail", VIBECHECKFAIL);
+        keywords.put("L", L);
         keywords.put("fun", FUN);
-        keywords.put("for", FOR);
-        keywords.put("if", IF);
+        keywords.put("rizzwalk", RIZZWALK);
+        keywords.put("vibecheck", VIBECHECK);
         keywords.put("none", NIL);
         keywords.put("or", OR);
         keywords.put("yap", YAP);
         keywords.put("return", RETURN);
         keywords.put("super", SUPER);
         keywords.put("this", THIS);
-        keywords.put("true", TRUE);
+        keywords.put("W", W);
         keywords.put("blud", BLUD);
-        keywords.put("while", WHILE);
+        keywords.put("cook", COOK);
+        keywords.put("ragequit", RAGEQUIT);
+        keywords.put("ghostnext", GHOSTNEXT);
+        keywords.put("pray", PRAY);
+        keywords.put("onL", ONL);
+        keywords.put("gotchu", GOTCHU);
     }
 
 
@@ -160,6 +165,8 @@ public class Lexer {
         }
         String text = source.substring(start, current);
         TokenType type = keywords.get(text);
+        // System.out.println("Identifier: " + text);
+        // System.out.println("Type: " + type);
         if (type == null){
             type = IDENTIFIER;
         }

@@ -53,7 +53,7 @@ yap x + y;
 Run it:
 ```bash
 SkibidiInterpreter.exe hello.skibidi
-# OR
+OR
 java skibidi.Skibidi hello.skibidi
 ```
 
@@ -117,13 +117,11 @@ yap W;
 ```skibidi
 blud score = 85;
 
-vibecheck (score >= 90) {
-    yap "Grade A!";
-} vibecheckfail (score >= 80) {
-    yap "Grade B!";
-} vibecheckfail {
-    yap "Keep trying!";
-}
+vibecheck (score >= 60) {
+    yap "Pass";
+} vibecheckfail{
+    yap "Fail";
+} 
 ```
 
 #### While Loops
@@ -173,7 +171,7 @@ Skibidi supports arithmetic and logical operations as well as ternary expression
 ```skibidi
 blud result = 10 + 5 * 2;  // 20
 blud greeting = "Hello" + " " + "World";  // "Hello World"
-blud isAdult = age >= 18 ? true : false;  // Ternary-like expression
+blud isAdult = age >= 18 ? W : L;  // Ternary-like expression
 ```
 
 ### Operators
@@ -236,7 +234,6 @@ SkibidiInterpreter.exe examples/pattern.skibidi
 Jskibiddi/
 ├── build/                    # Compiled files (ready to run)
 │   ├── skibidi/             # Java .class files
-│   └── SkibidiInterpreter/  # Executable versions
 ├── skibidi/                 # Source code
 │   ├── Skibidi.java         # Main interpreter class
 │   ├── Lexer.java           # Tokenizer

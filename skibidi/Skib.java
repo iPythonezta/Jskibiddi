@@ -12,6 +12,7 @@ public abstract class Skib {
         R visitBludSkib(bludSkib bludSkib);
         R vistiAssignBludSkib(AssignBludSkib assignBludSkib);
         R visitLogicalSkib(LogicalSkib logicalSkib);
+        R visitCallSkib(CallSkib callSkib);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -127,4 +128,23 @@ public abstract class Skib {
             return visitor.visitLogicalSkib(this);
         }
     }
+
+
+    public static class CallSkib extends Skib {
+        final Skib callee;
+        final java.util.List<Skib> arguments;
+        final Token paren;
+
+        public CallSkib(Skib callee, Token paren, java.util.List<Skib> arguments) {
+            this.callee = callee;
+            this.arguments = arguments;
+            this.paren = paren;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallSkib(this); // Assuming you want to treat it as a DuoSkib
+        }
+    }
+
 }

@@ -13,3 +13,11 @@ class RuntimeError extends RuntimeException {
 class RageQuitException extends RuntimeException {}
 
 class GhostNextException extends RuntimeException {}
+
+class Yeet extends RuntimeException {
+    final Object value;
+    public Yeet(Object value) {
+        super(null, null, false, false);
+        this.value = value;
+    }
+}

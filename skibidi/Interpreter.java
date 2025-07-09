@@ -1,5 +1,6 @@
 package skibidi;
 
+import java.util.ArrayList;
 import java.util.List;
 import skibidi.Skib.ConditionalSkib;
 import skibidi.Skib.DuoSkib;
@@ -15,6 +16,48 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
     public void setReplMode(boolean replMode) {
         this.replMode = replMode;
     } 
+
+    interface SkibidiCallable {
+        Object call(Interpreter interpreter, List<Object> arguments);
+        int arity();
+    }
+
+    class SkibidiFunction implements SkibidiCallable {
+        private final Stmt.SauceDeclr declaration;
+
+        public SkibidiFunction(Stmt.SauceDeclr declaration) {
+            this.declaration = declaration;
+        }
+
+        @Override
+        public Object call(Interpreter interpreter, List<Object> arguments) {
+            Environment previous = interpreter.environment;
+            try {
+                interpreter.environment = new Environment(previous);
+                for (int i = 0; i < arguments.size(); i++) {
+                    interpreter.environment.define(declaration.parameters.get(i).lexeme, arguments.get(i));
+                }
+                interpreter.execute(declaration.body);
+            } 
+            catch (Yeet e){
+                return e.value;
+            }
+            finally {
+                interpreter.environment = previous;
+            }
+            return null;
+        }
+
+        @Override
+        public int arity() {
+            return declaration.parameters.size();
+        }
+
+        @Override
+        public String toString() {
+            return "<Sauce: " + declaration.name + ">";
+        }
+    }
 
     public void interpret(List<Stmt> statements) {
         for (Stmt statement : statements) {
@@ -289,6 +332,45 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
         }
         return null;
     }
+
+    @Override
+    public Object visitCallSkib(Skib.CallSkib callSkib) {
+        Object callee = evaluate(callSkib.callee);
+        List<Object> arguments = new ArrayList<>();
+        for (Skib argument : callSkib.arguments) {
+            arguments.add(evaluate(argument));
+        }
+
+        if (!(callee instanceof SkibidiCallable)) {
+            throw new RuntimeError(callSkib.paren, "Can only call functions and classes.");
+        }
+
+        SkibidiCallable function = (SkibidiCallable) callee;
+
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(callSkib.paren, String.format("Expected %d arguments but got %d.", function.arity(), arguments.size()));
+        }
+
+        return function.call(this, arguments);
+    }
+
+    @Override
+    public Void visitSauceDeclr(Stmt.SauceDeclr sauceDeclr) {
+        SkibidiFunction function = new SkibidiFunction(sauceDeclr);
+        environment.define(sauceDeclr.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Void visitYeetStmt(Stmt.YeetStmt yeetStmt) {
+        Object value = null;
+        if (yeetStmt.value != null) {
+            value = evaluate(yeetStmt.value);
+        }
+        throw new Yeet(value);
+    }
+
+
 
     private Object evaluate(Skib skib) {
         return skib.accept(this);

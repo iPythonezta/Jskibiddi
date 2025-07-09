@@ -4,9 +4,13 @@ import java.util.List;
 /*
  Lang Grammar:
     program      → bludStmt* EOF ;
-    bludStmt    → statement | bludDeclr ;
+    bludStmt    → statement | bludDeclr | sauceDeclr ;
+    sauceDeclr → "sauce" sauce ;
+    sauce      → IDENTIFIER "(" parameters? ")" statement ;
+    parameters  → IDENTIFIER ( "," IDENTIFIER )* ;
     bludDeclr   → "blud" IDENTIFIER ( "=" expression )? ";" ;
-    statement  →  skibStatmnt | yapStatmnt | ragequitStatmnt | block | vibeCheckStmt | CookStmt | RizzWalkStmt | GhostNextStmt | LHandlerStmt ;
+    statement  →  skibStatmnt | yapStatmnt | ragequitStatmnt | block | vibeCheckStmt | CookStmt | RizzWalkStmt | GhostNextStmt | LHandlerStmt | YeetStmt ;
+    yeetStmt   → "yeet" skib? ";" ;
     LHandlerStmt → "pray"  statement  "onL" "(" IDENTIFIER ")" statement ("gotchu" statement)? ;
     CookStmt   → "cook" "(" skib ")" statement ;
     RizzWalkStmt → "RizzWalk" "(" (bludDeclr | skibStatmnt | ";") skib ? ";" skib? ")" statement ;
@@ -25,8 +29,9 @@ import java.util.List;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term           → factor ( ( "-" | "+" ) factor )* ;
     factor         → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" ) unary
-                | primary ;
+    unary          → ( "!" | "-" ) unary | call;
+    call          → primary ( "(" arguments? ")" )* ;
+    arguments      → skib ( "," skib )* ;
     primary        → NUMBER | STRING | "true" | "false" | "nil"
                 | "(" expression ")" | IDENTIFIER ;
 */
@@ -94,7 +99,37 @@ public class Parser {
         if (match(TokenType.PRAY)){
             return lHandlerStmt();
         }
+        if (match(TokenType.SAUCE)){
+            return sauceDeclr();
+        }
+        if (match(TokenType.YEET)) {
+            return yeetStmt();
+        }
         return skibStatement();
+    }
+
+    private Stmt yeetStmt(){
+        Token keyword = previous();
+        Skib skib = null;
+        if (!check(TokenType.SEMICOLON)) {
+            skib = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after 'yeet' statement.");
+        return new Stmt.YeetStmt(keyword, skib);
+    }
+
+    private Stmt sauceDeclr(){
+        Token name = consume(TokenType.IDENTIFIER, "Expect identifier after 'sauce'.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after sauce identifier.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                parameters.add(consume(TokenType.IDENTIFIER, "Expect identifier in sauce parameters."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after sauce parameters.");
+        Stmt body = statement();
+        return new Stmt.SauceDeclr(name, parameters, body);
     }
 
     private Stmt lHandlerStmt (){
@@ -304,7 +339,30 @@ public class Parser {
             Skib right = unary();
             return new Skib.MonoSkib(operator, right);
         }
-        return primary();
+        return call();
+    }
+
+    private Skib call(){
+        Skib skib = primary();
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                skib = finishCall(skib);
+            } else {
+                break;
+            }
+        }
+        return skib;
+    }
+
+    private Skib finishCall(Skib callee) {
+        List<Skib> arguments = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                arguments.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+        Token paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+        return new Skib.CallSkib(callee, paren, arguments);
     }
 
     private Skib primary(){
@@ -388,7 +446,7 @@ public class Parser {
             case VIBECHECK:
             case COOK:
             case YAP:
-            case RETURN:
+            case YEET:
             return;
         }
 

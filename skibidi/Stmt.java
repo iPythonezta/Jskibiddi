@@ -16,6 +16,8 @@ public abstract class Stmt {
         R visitGhostNextStmt(GhostNextStmt ghostNextStmt);
         R visitRizzWalkStmt(RizzWalkStmt rizzWalkStmt);
         R visitLHandlerStmt(LHandlerStmt lHandlerStmt);
+        R visitSauceDeclr(SauceDeclr sauceDeclr);
+        R visitYeetStmt(YeetStmt yeetStmt);
     }
 
     public static class SkibStmt extends Stmt {
@@ -144,6 +146,36 @@ public abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitLHandlerStmt(this);
+        }
+    }
+
+    public static class SauceDeclr extends Stmt {
+        final Token name;
+        final List<Token> parameters;
+        final Stmt body;
+
+        public SauceDeclr(Token name, List<Token> parameters, Stmt body) {
+            this.name = name;
+            this.parameters = parameters;
+            this.body = body;
+        }
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSauceDeclr(this);
+        }
+    }
+
+    public static class YeetStmt extends Stmt {
+        final Token name;
+        final Skib value;
+
+        public YeetStmt(Token name, Skib value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitYeetStmt(this);
         }
     }
 

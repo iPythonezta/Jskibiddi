@@ -24,7 +24,7 @@ public class Lexer {
         keywords.put("none", NIL);
         keywords.put("or", OR);
         keywords.put("yap", YAP);
-        keywords.put("return", RETURN);
+        keywords.put("yeet", YEET);
         keywords.put("super", SUPER);
         keywords.put("this", THIS);
         keywords.put("W", W);
@@ -35,6 +35,7 @@ public class Lexer {
         keywords.put("pray", PRAY);
         keywords.put("onL", ONL);
         keywords.put("gotchu", GOTCHU);
+        keywords.put("sauce", SAUCE);
     }
 
 

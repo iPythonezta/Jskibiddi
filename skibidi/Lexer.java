@@ -218,7 +218,7 @@ public class Lexer {
                 } 
                 break;
             case '!': 
-                addToken(match('=') ? BANG_EQUAL : EQUAL);
+                addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
             case '=':
                 addToken(match('=') ? EQUAL_EQUAL : EQUAL);

@@ -1,0 +1,48 @@
+// Function Test Script
+yap "=== FUNCTION TESTS ===";
+
+// Simple function
+sauce greet(name) {
+    yeet "Hello, " + name + "!";
+}
+
+// Function with multiple parameters
+sauce add(a, b) {
+    yeet a + b;
+}
+
+// Function with no parameters
+sauce getCurrentYear() {
+    yeet 2025;
+}
+
+// Recursive function
+sauce factorial(n) {
+    vibecheck (n <= 1) {
+        yeet 1;
+    } vibecheckfail {
+        yeet n * factorial(n - 1);
+    }
+}
+
+// Function calls
+yap greet("Skibidi");
+yap greet("Toilet");
+
+blud sum = add(15, 27);
+yap "15 + 27 = " + sum;
+
+yap "Current year: " + getCurrentYear();
+
+blud fact5 = factorial(5);
+yap "5! = " + fact5;
+
+// Function with local variables
+sauce calculateArea(width, height) {
+    blud area = width * height;
+    yap "Calculating area of " + width + " x " + height;
+    yeet area;
+}
+
+blud roomArea = calculateArea(12, 15);
+yap "Room area: " + roomArea + " square units";

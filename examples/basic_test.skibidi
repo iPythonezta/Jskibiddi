@@ -1,0 +1,13 @@
+// Basic Variable and Arithmetic Test
+yap "=== BASIC VARIABLES ===";
+blud name = "Skibidi";
+blud age = 21;
+blud isAwesome = W;
+blud nothing = none;
+
+yap "Name: " + name;
+yap "Age: " + age;
+yap "Is Awesome: " + (isAwesome == W ? "Yes" : "No"); // + isn't supported for booleans
+yap "Nothing: " + (nothing == none ? "none" : nothing);
+
+

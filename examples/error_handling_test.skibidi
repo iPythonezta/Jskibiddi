@@ -1,0 +1,45 @@
+// Error Handling Test Script
+yap "=== ERROR HANDLING TESTS ===";
+
+sauce riskyDivision(a, b) {
+    yeet a / b;
+}
+
+sauce testErrorHandling() {
+    pray {
+        yap "Attempting safe division: 10 / 2";
+        blud result1 = riskyDivision(10, 2);
+        yap "Result: " + result1;
+        
+        yap "Attempting risky division: 10 / 0";
+        blud result2 = riskyDivision(10, 0);
+        yap "This line should not execute!";
+    }
+    onL (error) {
+        yap "Caught an error: " + error;
+        yap "Handling the error gracefully...";
+    }
+    gotchu {
+        yap "Cleanup code always runs!";
+    }
+}
+
+// Test multiple error scenarios
+sauce testMultipleErrors() {
+    rizzwalk (blud i = 2; i >= -1; i = i - 1) {
+        pray {
+            blud result = 100 / i;
+            yap "100 / " + i + " = " + result;
+        }
+        onL (e) {
+            yap "Error with i=" + i + ": " + e;
+        }
+        gotchu {
+            yap "Iteration " + i + " completed";
+        }
+    }
+}
+
+testErrorHandling();
+yap "\n=== MULTIPLE ERROR TEST ===";
+testMultipleErrors();

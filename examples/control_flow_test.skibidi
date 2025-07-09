@@ -1,0 +1,39 @@
+// Control Flow Test Script
+yap "=== IF-ELSE TESTS ===";
+
+blud score = 85;
+
+vibecheck (score >= 60) {
+    yap "Pass";
+} vibecheckfail{
+    yap "Fail";
+} 
+
+yap "\n=== WHILE LOOP ===";
+blud count = 1;
+cook (count <= 3) {
+    yap "Count: " + count;
+    count = count + 1;
+}
+
+yap "\n=== FOR LOOP ===";
+rizzwalk (blud i = 1; i <= 5; i = i + 1) {
+    vibecheck (i == 3) {
+        yap "Skipping " + i + " with ghostnext";
+        ghostnext;
+    }
+    vibecheck (i == 5) {
+        yap "Breaking at " + i + " with ragequit";
+        ragequit;
+    }
+    yap "Loop iteration: " + i;
+}
+
+yap "\n=== NESTED LOOPS ===";
+rizzwalk (blud row = 1; row <= 3; row = row + 1) {
+    blud line = "";
+    rizzwalk (blud col = 1; col <= row; col = col + 1) {
+        line = line + "*" + " ";
+    }
+    yap line;
+}

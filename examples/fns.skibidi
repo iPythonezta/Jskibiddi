@@ -1,7 +1,0 @@
-sauce sayHello (str) {
-    yeet "Hello, " + str + "!";
-}
-
-rizzwalk (blud i = 1; i <= 5; i = i + 1) { // Say hello world 5 times
-    yap sayHello("World"); 
-}

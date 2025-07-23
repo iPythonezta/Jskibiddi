@@ -101,6 +101,9 @@ public class Skibidi {
             List<Stmt> statements = parser.parse();
             if (hadError) return;
             // System.out.println(new AstPrinter().print(expresion));
+            Resolver resolver = new Resolver(interpreter);
+            resolver.resolve(statements);
+            if (hadError) return;
             interpreter.interpret(statements);
         }
         catch (NullPointerException e){

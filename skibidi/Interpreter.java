@@ -1,6 +1,8 @@
 package skibidi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import skibidi.Skib.ConditionalSkib;
 import skibidi.Skib.DuoSkib;
@@ -9,7 +11,7 @@ import skibidi.Skib.NestSkib;
 import skibidi.Skib.literalSkib;
 
 public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
-
+    private final Map<Skib, Integer> locals = new HashMap<>();
     private Environment environment = new Environment();
     private boolean replMode = false;
     
@@ -24,9 +26,11 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
 
     class SkibidiFunction implements SkibidiCallable {
         private final Stmt.SauceDeclr declaration;
+        private final Environment closure;
 
-        public SkibidiFunction(Stmt.SauceDeclr declaration) {
+        public SkibidiFunction(Stmt.SauceDeclr declaration, Environment closure) {
             this.declaration = declaration;
+            this.closure = closure;
         }
 
         @Override
@@ -34,6 +38,7 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
             Environment previous = interpreter.environment;
             try {
                 interpreter.environment = new Environment(previous);
+                interpreter.environment = new Environment(closure);
                 for (int i = 0; i < arguments.size(); i++) {
                     interpreter.environment.define(declaration.parameters.get(i).lexeme, arguments.get(i));
                 }
@@ -216,13 +221,18 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitBludSkib(Skib.bludSkib bludSkib) {
-        return environment.get(bludSkib.name);
+        return lookUpVariable(bludSkib.name, bludSkib);
     }
 
     @Override
     public Object vistiAssignBludSkib(Skib.AssignBludSkib assignBludSkib) {
         Object value = evaluate(assignBludSkib.value);
-        environment.assign(assignBludSkib.name, value);
+        Integer distance = locals.get(assignBludSkib);
+        if (distance != null) {
+            environment.assignAt(distance, assignBludSkib.name, value);
+        } else {
+            environment.assign(assignBludSkib.name, value);
+        }
         return value;
     }
 
@@ -356,7 +366,7 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitSauceDeclr(Stmt.SauceDeclr sauceDeclr) {
-        SkibidiFunction function = new SkibidiFunction(sauceDeclr);
+        SkibidiFunction function = new SkibidiFunction(sauceDeclr, environment);
         environment.define(sauceDeclr.name.lexeme, function);
         return null;
     }
@@ -368,6 +378,19 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
             value = evaluate(yeetStmt.value);
         }
         throw new Yeet(value);
+    }
+
+    public Void resolve(Skib skib, int depth) {
+        locals.put(skib, depth);
+        return null;
+    }
+
+    private Object lookUpVariable(Token name, Skib skib) {
+        if (locals.containsKey(skib)) {
+            return environment.getAt(locals.get(skib), name.lexeme);
+        } else {
+            return environment.get(name);
+        }
     }
 
 

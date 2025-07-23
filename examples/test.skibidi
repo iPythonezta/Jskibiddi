@@ -1,0 +1,14 @@
+sauce factorial(n) {
+    vibecheck (n <= 1) {
+        yeet 1;
+    } vibecheckfail {
+        yeet n * factorial(n - 1);
+    }
+}
+
+# Finding Factorial of numbers from 1 to 10
+
+rizzwalk (blud i = 1; i <= 10; i = i + 1) {
+    blud fact = factorial(i);
+    yap "Factorial of " + i + " is " + fact;
+}

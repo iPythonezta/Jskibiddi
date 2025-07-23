@@ -19,6 +19,7 @@ public class Resolver implements Stmt.Visitor<Void>, Skib.Visitor<Void> {
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
         this.scopes = new Stack<>();
+        beginScope();
     }
 
     @Override
@@ -42,8 +43,11 @@ public class Resolver implements Stmt.Visitor<Void>, Skib.Visitor<Void> {
     
     @Override
     public Void visitBludSkib(Skib.bludSkib bludExpr) {
-        if (!scopes.isEmpty() && scopes.peek().containsKey(bludExpr.name.lexeme) == false) {
-            Skibidi.report(bludExpr.name, "Cannot use blud '" + bludExpr.name.lexeme + "' before declaration.");
+        if (!scopes.isEmpty()) {
+            Boolean defined = scopes.peek().get(bludExpr.name.lexeme);
+            if (defined != null && !defined) {
+                Skibidi.report(bludExpr.name, "Cannot use blud '" + bludExpr.name.lexeme + "' in its own initializer.");
+            }
         }
         resolveLocal(bludExpr, bludExpr.name);
         return null;
@@ -153,10 +157,11 @@ public class Resolver implements Stmt.Visitor<Void>, Skib.Visitor<Void> {
         }
         resolve(sauceDeclr.body);
         endScope();
+        currentFunction = enclosingFunction;
     }
 
     private void resolveLocal(Skib skib, Token name) {
-        for (int i = scopes.size(); i >= 0; i--){
+        for (int i = scopes.size()-1; i >= 0; i--){
             if (scopes.get(i).containsKey(name.lexeme)) {
                 interpreter.resolve(skib, scopes.size() - 1 - i);
                 return;

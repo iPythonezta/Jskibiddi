@@ -1,0 +1,7 @@
+gang BigGang {
+    serveOn () {
+        yeet "Scores";
+    }
+}
+
+yap BigGang;

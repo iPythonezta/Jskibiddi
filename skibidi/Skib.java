@@ -13,6 +13,8 @@ public abstract class Skib {
         R vistiAssignBludSkib(AssignBludSkib assignBludSkib);
         R visitLogicalSkib(LogicalSkib logicalSkib);
         R visitCallSkib(CallSkib callSkib);
+        R visitGetSkib(GetSkib getSkib);
+        R visitSetSkib(SetSkib setSkib);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -144,6 +146,38 @@ public abstract class Skib {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitCallSkib(this); // Assuming you want to treat it as a DuoSkib
+        }
+    }
+
+    public static class GetSkib extends Skib {
+        final Skib object;
+        final Token name;
+
+        public GetSkib(Skib object, Token name) {
+            this.object = object;
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGetSkib(this);
+        }
+    }
+
+    public static class SetSkib extends Skib {
+        final Skib object;
+        final Token name;
+        final Skib value;
+
+        public SetSkib(Skib object, Token name, Skib value) {
+            this.object = object;
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSetSkib(this);
         }
     }
 

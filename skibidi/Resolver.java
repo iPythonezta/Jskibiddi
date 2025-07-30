@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.util.function.Function;
 
+import skibidi.Stmt.Gang;
+
 
 
 public class Resolver implements Stmt.Visitor<Void>, Skib.Visitor<Void> {
@@ -255,5 +257,24 @@ public class Resolver implements Stmt.Visitor<Void>, Skib.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitGang(Stmt.Gang gang) {
+        declare(gang.name);
+        define(gang.name);
+        return null;
+    }
+
+    @Override
+    public Void visitGetSkib(Skib.GetSkib getSkib) {
+        resolve(getSkib.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetSkib(Skib.SetSkib setSkib) {
+        resolve(setSkib.object);
+        resolve(setSkib.value);
+        return null;
+    }
 
 }

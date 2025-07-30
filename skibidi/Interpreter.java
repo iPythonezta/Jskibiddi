@@ -2,8 +2,8 @@ package skibidi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import skibidi.Skib.ConditionalSkib;
 import skibidi.Skib.DuoSkib;
 import skibidi.Skib.MonoSkib;
@@ -378,6 +378,34 @@ public class Interpreter implements Skib.Visitor<Object>, Stmt.Visitor<Void> {
             value = evaluate(yeetStmt.value);
         }
         throw new Yeet(value);
+    }
+
+    @Override
+    public Void visitGang(Stmt.Gang gang){
+        environment.define(gang.name.lexeme, null);
+        SkibidiGang skibidiGang = new SkibidiGang(gang.name.lexeme);
+        environment.assign(gang.name, skibidiGang);
+        return null;
+    }
+
+    @Override
+    public Object visitGetSkib(Skib.GetSkib getSkib) {
+        Object object = evaluate(getSkib.object);
+        if (!(object instanceof SkibidiInstance)) {
+            throw new RuntimeError(getSkib.name, "Only instances have properties.");
+        }
+        return ((SkibidiInstance) object).get(getSkib.name);
+    }
+
+    @Override
+    public Object visitSetSkib(Skib.SetSkib setSkib) {
+        Object object = evaluate(setSkib.object);
+        if (!(object instanceof SkibidiInstance)) {
+            throw new RuntimeError(setSkib.name, "Only instances have properties.");
+        }
+        Object value = evaluate(setSkib.value);
+        ((SkibidiInstance) object).set(setSkib.name, value);
+        return value;
     }
 
     public Void resolve(Skib skib, int depth) {

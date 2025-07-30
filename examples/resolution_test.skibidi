@@ -1,6 +1,10 @@
 blud a = 10;
 
-sauce yapA(){
-    yap a;
+{
+    sauce yapA(){
+        yap a;
+    }
+    yapA();
+    blud a = 20;
+    yapA();
 }
-yapA();

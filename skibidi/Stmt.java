@@ -18,6 +18,7 @@ public abstract class Stmt {
         R visitLHandlerStmt(LHandlerStmt lHandlerStmt);
         R visitSauceDeclr(SauceDeclr sauceDeclr);
         R visitYeetStmt(YeetStmt yeetStmt);
+        R visitGang(Gang gang);
     }
 
     public static class SkibStmt extends Stmt {
@@ -176,6 +177,20 @@ public abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitYeetStmt(this);
+        }
+    }
+
+    public static class Gang extends Stmt {
+        final Token name;
+        final List<SauceDeclr> sauces;
+
+        public Gang(Token name, List<SauceDeclr> sauces) {
+            this.name = name;
+            this.sauces = sauces;
+        }
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGang(this);
         }
     }
 

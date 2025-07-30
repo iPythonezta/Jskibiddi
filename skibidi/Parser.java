@@ -4,7 +4,8 @@ import java.util.List;
 /*
  Lang Grammar:
     program      → bludStmt* EOF ;
-    bludStmt    → statement | bludDeclr | sauceDeclr ;
+    bludStmt    → statement | bludDeclr | sauceDeclr | gangDeclr ;
+    gangDeclr   → "gang" IDENTIFIER "{" sauce* "}" ;
     sauceDeclr → "sauce" sauce ;
     sauce      → IDENTIFIER "(" parameters? ")" statement ;
     parameters  → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -21,7 +22,7 @@ import java.util.List;
     skibStatmnt  → skib ";" ;
     printStatmnt → "yap" skib ";" ;
     skib     → assignment ;
-    assignment     → IDENTIFIER "=" assignment | conditional ;
+    assignment     → (call ".")? IDENTIFIER "=" assignment | conditional ;
     conditional -> logic_or ( "?" conditional ":" conditional )? ;
     logic_or      → logic_and ( "or" logic_and )* ;
     logic_and     → equality ( "and" equality )* ;
@@ -30,7 +31,7 @@ import java.util.List;
     term           → factor ( ( "-" | "+" ) factor )* ;
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary | call;
-    call          → primary ( "(" arguments? ")" )* ;
+    call          → primary ( "(" arguments? ")"  | "." IDENTIFIER )* ;
     arguments      → skib ( "," skib )* ;
     primary        → NUMBER | STRING | "true" | "false" | "nil"
                 | "(" expression ")" | IDENTIFIER ;
@@ -105,7 +106,21 @@ public class Parser {
         if (match(TokenType.YEET)) {
             return yeetStmt();
         }
+        if (match(TokenType.GANG)) {
+            return gangDeclr();
+        }
         return skibStatement();
+    }
+
+    private Stmt gangDeclr() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect identifier after 'gang'.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' after gang identifier.");
+        List<Stmt.SauceDeclr> sauces = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            sauces.add((Stmt.SauceDeclr) sauceDeclr());
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after gang declaration.");
+        return new Stmt.Gang(name, sauces);
     }
 
     private Stmt yeetStmt(){
@@ -257,6 +272,10 @@ public class Parser {
                 Token name = ((Skib.bludSkib) skib).name;
                 return new Skib.AssignBludSkib(name, value);
             }
+            else if (skib instanceof Skib.GetSkib) {
+                Skib.GetSkib get = (Skib.GetSkib) skib;
+                return new Skib.SetSkib(get.object, get.name, value);
+            }
             throw error(equals, "Invalid assignment target.");
         }
         return skib;
@@ -347,6 +366,10 @@ public class Parser {
         while (true) {
             if (match(TokenType.LEFT_PAREN)) {
                 skib = finishCall(skib);
+            } 
+            else if (match(TokenType.DOT)) {
+                Token name = consume(TokenType.IDENTIFIER, "Expect identifier after '.'.");
+                skib = new Skib.GetSkib(skib, name);
             } else {
                 break;
             }
@@ -439,7 +462,7 @@ public class Parser {
         if (previous().type == TokenType.SEMICOLON) return;
 
         switch (peek().type) {
-            case CLASS:
+            case GANG:
             case FUN:
             case BLUD:
             case RIZZWALK:
